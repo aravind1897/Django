@@ -1,0 +1,35 @@
+CREATE TABLE purchase_manager (
+    id   INTEGER       PRIMARY KEY,
+    name VARCHAR (200) NOT NULL
+);
+
+CREATE TABLE project_manager (
+    id   INTEGER       PRIMARY KEY
+                       NOT NULL,
+    name VARCHAR (200) NOT NULL
+);
+
+INSERT INTO project_manager (id, name) VALUES (1, 'Tom');
+INSERT INTO project_manager (id, name) VALUES (2, 'Tracy');
+INSERT INTO project_manager (id, name) VALUES (3, 'Dominic');
+INSERT INTO project_manager (id, name) VALUES (4, 'Stephan');
+INSERT INTO project_manager (id, name) VALUES (5, 'Erica');
+INSERT INTO project_manager (id, name) VALUES (6, 'Richardson');
+
+CREATE TABLE purchase_request (
+    id               INTEGER       PRIMARY KEY
+                                   NOT NULL,
+    emp_name         VARCHAR (200) NOT NULL,
+    team             VARCHAR (200) NOT NULL,
+    req_product      VARCHAR (200) NOT NULL,
+    purpose          VARCHAR (200) NOT NULL,
+    product_link     TEXT,
+    price            VARCHAR (200) NOT NULL,
+    project_manager  VARCHAR (200) NOT NULL,
+    purchase_manager VARCHAR (200) NOT NULL,
+    status           VARCHAR (200) NOT NULL,
+    request_date     DATETIME,
+    approved_date    DATETIME,
+    purchase_date    DATETIME,
+    delivery_date    DATETIME
+);
