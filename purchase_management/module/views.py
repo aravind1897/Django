@@ -42,8 +42,8 @@ def add(request):
         return redirect('/index')
     else:
         project_mgr = project.objects.all() 
-        form = RequestForm()
-    return render(request,'add_req.html',{'form':form,'manager':project_mgr}) 
+        #form = RequestForm()
+    return render(request,'add_req.html',{'manager':project_mgr}) 
 
 
 def project_index(request):  
