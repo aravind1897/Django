@@ -77,8 +77,9 @@ def change_status(request):
     elif 'purchase' in utype:
         if '1' in status:
             status = 'Order placed'
+            purchase_manager = purchase.objects.values('name').filter(id=1)
             purchase_date = date.today() 
-            update = purchase_request.objects.filter(id=req_id).update(status=status,purchase_date=purchase_date)  
+            update = purchase_request.objects.filter(id=req_id).update(status=status,purchase_date=purchase_date,purchase_manager=list(purchase_manager)[0]['name'])  
         elif '2' in status:
             status = 'Rejected by purchase manager'
             update = purchase_request.objects.filter(id=req_id).update(status=status)  
