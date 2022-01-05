@@ -16,6 +16,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from module import views
+from django.conf.urls.static import static
+from django.conf import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,4 +27,8 @@ urlpatterns = [
     path('pr_index/',views.project_index),
     path('pu_index/',views.purchase_index),
     path('change_status',views.change_status),
-]
+    path('upload_invoice',views.upload_invoice),
+    path('login',views.login),
+    path('logout',views.logout),
+    path('registration',views.registration)
+]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,9 +1,23 @@
 from django.db import models
 from django.db.models.deletion import CASCADE
 
-# Create your models here.
+
+class user_info(models.Model):  
+    uid = models.AutoField(primary_key=True, null=False)  
+    name = models.CharField(max_length=100)
+    email = models.EmailField(max_length=100)
+    team = models.CharField(max_length=100)
+    user_type = models.CharField(max_length=100)
+    uname = models.CharField(max_length=100)
+    password = models.CharField(max_length=100)
+    created_on = models.DateTimeField(blank=True,null=True)
+
+    class Meta:  
+        db_table = "user_info"
+
+
 class project(models.Model):  
-    project_manager_id = models.AutoField(primary_key=True, null=False),  
+    project_manager_id = models.AutoField(primary_key=True, null=False) 
     name = models.CharField(max_length=100)
     
     class Meta:  
@@ -11,7 +25,7 @@ class project(models.Model):
 
 
 class purchase(models.Model):  
-    purchase_manager_id = models.AutoField(primary_key=True, null=False),  
+    purchase_manager_id = models.AutoField(primary_key=True, null=False)  
     name = models.CharField(max_length=100)
     
     class Meta:  
@@ -34,6 +48,8 @@ class purchase_request(models.Model):
     approved_date = models.DateTimeField(blank=True)
     purchase_date = models.DateTimeField(blank=True)
     delivery_date = models.DateTimeField(blank=True, null=True)
+    image = models.TextField(blank=True)
+    invoice = models.CharField(max_length=100,blank=True, null=True)
     
     class Meta:  
         db_table = "purchase_request"

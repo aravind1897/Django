@@ -1,12 +1,35 @@
 from django.shortcuts import render,redirect
-from module.models import purchase,project,purchase_request
+from module.models import purchase,project,purchase_request,user_info
 from module.forms import ProjectForm,PurchaseForm,RequestForm
 from datetime import date
 from django.http import HttpResponse
 from django.contrib import messages
+from django.core.files.storage import FileSystemStorage
+from django.core.mail import send_mail
 
 
 # Create your views here.
+
+def login(request):
+    if request.method == "POST":
+        name = request.POST.get('uname')
+        password = request.POST.get('pwd')
+        if user_info.objects.filter(uname=name,password=password).exists():
+            request.session['uname'] = name
+            request.session['is_login'] = True
+            return redirect("/index")
+        else:
+            messages.error(request,'Invalid Credentials')
+            return redirect("/login")
+    else:    
+        return render(request,'login.html')
+
+def logout(request):
+    del request.session['uname']
+    request.session['is_login'] = False
+    return redirect("/login")
+    
+
 def main(request):
     if request.method == "POST":  
         utype = request.POST['utype']
@@ -20,14 +43,20 @@ def main(request):
         return render(request,'main.html')
 
 
-def index(request):  
-    purchase_req = purchase_request.objects.values() 
+def index(request): 
+    if not request.session['is_login']:
+        messages.error(request,'Please login to perform this action') 
+        return redirect("/login")
+    purchase_req = purchase_request.objects.values()
     project_mgr = project.objects.values() 
-    purchase_mgr = purchase.objects.values()  
+    purchase_mgr = purchase.objects.values() 
     return render(request,'index.html',{'pur_req':purchase_req,'pj_mgr':project_mgr,'pu_mgr':purchase_mgr})
     
 
 def add(request):
+    if not request.session['is_login']:
+        messages.error(request,'Please login to perform this action') 
+        return redirect("/login")
     if request.method == "POST":  
         name = request.POST['name']
         team = request.POST['team']
@@ -36,8 +65,12 @@ def add(request):
         link = request.POST['link']
         price = request.POST['price']
         mgr = request.POST['mgr']
+        img = request.FILES['pro_file']
+        fss = FileSystemStorage()
+        file = fss.save(img.name, img)
+        file_url = fss.url(file)
         insert = purchase_request.objects.create(emp_name=name,team=team,req_product=req_pro,purpose=purpose,product_link=link,
-        price=price,project_manager=str(mgr),purchase_manager='Not Assigned',status='Pending for Approval',request_date=date.today())
+        price=price,project_manager=str(mgr),purchase_manager='Not Assigned',status='Pending for Approval',request_date=date.today(),image=img)
         messages.success(request,'Request added successfully')
         return redirect('/index')
     else:
@@ -47,6 +80,9 @@ def add(request):
 
 
 def project_index(request):  
+    if not request.session['is_login']:
+        messages.error(request,'Please login to perform this action') 
+        return redirect("/login")
     purchase_req = purchase_request.objects.values() 
     project_mgr = project.objects.values() 
     purchase_mgr = purchase.objects.values()    
@@ -54,6 +90,9 @@ def project_index(request):
 
 
 def purchase_index(request):  
+    if not request.session['is_login']:
+        messages.error(request,'Please login to perform this action') 
+        return redirect("/login")
     purchase_req = purchase_request.objects.values() 
     project_mgr = project.objects.values() 
     purchase_mgr = purchase.objects.values() 
@@ -88,4 +127,41 @@ def change_status(request):
             del_date = date.today() 
             update = purchase_request.objects.filter(id=req_id).update(status=status,delivery_date=del_date)
      
-    return HttpResponse('success')
+    return HttpResponse('success') 
+
+
+def upload_invoice(request):
+    if request.method == "POST":  
+        inv = request.FILES['invoice']
+        print(inv)
+        req_id = request.POST['req_id']
+        fss = FileSystemStorage()
+        file = fss.save(inv.name, inv)
+        file_url = fss.url(file)
+        update = purchase_request.objects.filter(id=req_id).update(invoice=inv)
+        return redirect('/pu_index')
+    else:
+        print('hi')
+        pass
+
+def registration(request):
+    if request.method == "POST":  
+        name = request.POST['name']
+        email = request.POST['email']
+        team = request.POST['team']
+        utype = request.POST['utype']
+        uname = request.POST['uname']
+        password = request.POST['pwd']
+        if utype=='2':
+            pj_manager_insert = project.objects.create(name=name)
+        elif utype=='3':
+            pu_manager_insert = purchase.objects.create(name=name)
+        user_insert = user_info.objects.create(name=name,email=email,team=team,user_type=utype,uname=uname,password=password)
+        messages.success(request,'Successfully Registered')
+        return render(request,"login.html") 
+    else:
+        return render(request,'registration.html') 
+    
+    
+
+
