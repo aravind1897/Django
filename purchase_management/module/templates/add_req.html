@@ -4,7 +4,9 @@
 <head>
 
     <meta charset="UTF-8">
+    {% load static %}
     <title>Add Purchase Request</title>
+    <link rel="icon" type="image/x-icon" href="{% static '/img/favicon.ico' %}">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css"
         integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p" crossorigin="anonymous" />
@@ -21,7 +23,7 @@
     <br>
     <h3 style="text-align:center"><b>Add Request</b></h3><br>
     <div class="col-md-10 col-md-offset-2 text-center">
-        <form action="" method="POST">
+        <form action="" method="POST" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="form-group">
                 <label class="col-md-3 control-label text-right"><b>Employee Name:</b></label>
@@ -42,6 +44,10 @@
             <div class="form-group">
                 <label class="col-md-3 control-label text-right"><b>Product Link:</b></label>
                 <input type="text" class="col-md-4" name="link" required>
+            </div>
+            <div class="form-group">
+                <label class="col-md-3 control-label text-right"><b>Product Image:</b></label>
+                <input type="file" class="col-md-4" name="pro_file" required>
             </div>
             <div class="form-group">
                 <label class="col-md-3 control-label text-right"><b>Price:</b></label>

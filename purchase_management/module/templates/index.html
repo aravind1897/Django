@@ -14,17 +14,20 @@
         margin-right: 20px;
 
     }
+    
 </style>
 
 <head>
+    {% load static %}
     <meta charset="UTF-8">
     <title>Purchase Requests</title>
+    <link rel="icon" type="image/x-icon" href="{% static '/img/favicon.ico' %}">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css"
         integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p" crossorigin="anonymous" />
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+    <!-- <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
         integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
-    <link rel="stylesheet" href="//cdn.datatables.net/1.10.16/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="//cdn.datatables.net/1.10.16/css/dataTables.bootstrap4.min.css"> -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
 
 </head>
@@ -33,7 +36,7 @@
     <div class="col-md-12" style="background-color: lightblue;height:65px;text-align: center;">
         <h1><i class="fa fa-shopping-cart"></i>&nbsp;<b>Purchase Management System</b></h1>
         <div class="text-right" id="logout">
-            <a href="/" style="color:rgb(56, 55, 55)" data-toggle="tooltip" title="Logout"><i
+            <a href="/logout" style="color:rgb(56, 55, 55)" data-toggle="tooltip" title="Logout"><i
                     class="fa fa-power-off" style="font-size:35px"></i></a>
         </div>
     </div>
@@ -57,7 +60,7 @@
     </div>
     <div class="form-group" style="padding:12px;">
         <table class="table table-striped table-bordered" style="width:100%;padding:10px;" id="pur_req">
-            <thead class="thead-dark" style="background-color:lightblue;">
+            <thead class="thead-dark" style="background-color:#343a40;color:white">
                 <tr>
                     <th>Employee Name</th>
                     <th>Team</th>
@@ -72,6 +75,7 @@
                     <th>Approved Date</th>
                     <th>Purchased Date</th>
                     <th>Delivery Date</th>
+                    <th>Product Image</th>
                 </tr>
             </thead>
             <tbody>
@@ -82,7 +86,7 @@
                     <td>{{ req.team }}</td>
                     <td>{{ req.req_product }}</td>
                     <td>{{ req.purpose }}</td>
-                    <td>{{ req.product_link }}</td>
+                    <td><a href="{{ req.product_link }}" target="_blank">{{ req.product_link|slice:20 }}</a></td>
                     <td>{{ req.price }}</td>
                     <td>{{ req.project_manager }}</td>
                     <td>{{ req.purchase_manager }}</td>
@@ -113,6 +117,11 @@
                     {% else %}
                     <td>{{ req.delivery_date|date:"Y-m-d" }}</td>
                     {% endif %}
+                    <td>
+                        <a href="javascript:void(0);" data-toggle="tooltip" id="{{ req.name }}" onclick="preview('{{ req.image }}')"  title="Click to Preview">
+                        <img src="../media/{{ req.image }}" alt="img" width="65px" height="40px"></a>
+                        
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -120,10 +129,18 @@
     </div>
     <br>
     <br>
-    <script src="//code.jquery.com/jquery-1.12.4.js"></script>
-    <script src="//cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
-    <script src="//cdn.datatables.net/1.10.16/js/dataTables.bootstrap4.min.js"></script>
-    <script>
+    <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
+	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.12/css/dataTables.bootstrap.min.css" />
+	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.1.0/css/responsive.bootstrap.min.css" />
+	
+    <script type="text/javascript" language="javascript" src="//code.jquery.com/jquery-1.12.3.js"></script>
+	<script type="text/javascript" language="javascript" src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+	<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
+	<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.12/js/dataTables.bootstrap.min.js"></script>
+	<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/responsive/2.1.0/js/dataTables.responsive.min.js"></script>
+	<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/responsive/2.1.0/js/responsive.bootstrap.min.js"></script>
+   
+    <script type="text/javascript">
         $(document).ready(function () {
             $('#pur_req').DataTable({
 
@@ -132,6 +149,11 @@
         function remove_flash() {
             $("#flash").remove();
         }
+        function preview(name)
+        {
+            $("#mod_img").attr('src','../media/'+name);
+            $("#prev").modal();
+        }
     </script>
 </body>
 <!-- <script type="text/javascript">
@@ -139,5 +161,17 @@
     document.getElementById('pur_req').dataTable();
 });
 </script> -->
-
+<div class="modal fade" id="prev" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" style="width:900px;margin-left:-150px">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title text-center"><b>Preview</b></h4>
+            </div>
+            <div class="modal-body">
+                <img src="" id="mod_img" width="100%">
+            </div>
+        </div> 
+    </div>
+</div>               
 </html>
