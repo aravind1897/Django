@@ -156,7 +156,7 @@ def registration(request):
             pj_manager_insert = project.objects.create(name=name)
         elif utype=='3':
             pu_manager_insert = purchase.objects.create(name=name)
-        user_insert = user_info.objects.create(name=name,email=email,team=team,user_type=utype,uname=uname,password=password)
+        user_insert = user_info.objects.create(name=name,email=email,team=team,user_type=utype,uname=uname,password=password,created_on=date.today())
         messages.success(request,'Successfully Registered')
         return render(request,"login.html") 
     else:
