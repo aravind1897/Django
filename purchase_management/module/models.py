@@ -4,16 +4,23 @@ from django.db.models.deletion import CASCADE
 
 class user_info(models.Model):  
     uid = models.AutoField(primary_key=True, null=False)  
-    name = models.CharField(max_length=100)
-    email = models.EmailField(max_length=100)
-    team = models.CharField(max_length=100)
-    user_type = models.CharField(max_length=100)
-    uname = models.CharField(max_length=100)
-    password = models.CharField(max_length=100)
+    name = models.CharField(max_length=100,blank=True)
+    email = models.EmailField(max_length=100,blank=True)
+    team = models.CharField(max_length=100,blank=True)
+    user_type = models.CharField(max_length=100,blank=True)
+    uname = models.CharField(max_length=100,blank=True)
+    password = models.CharField(max_length=100,blank=True)
     created_on = models.DateTimeField(blank=True,null=True)
 
     class Meta:  
         db_table = "user_info"
+
+class user_type(models.Model):
+    user_type_id = models.AutoField(primary_key=True,null=False)
+    user_type = models.CharField(max_length=100)
+
+    class Meta:
+        db_table = "user_type"
 
 
 class project(models.Model):  
@@ -33,7 +40,7 @@ class purchase(models.Model):
 
 
 class purchase_request(models.Model):  
-    id = models.AutoField(primary_key=True, null=False)  
+    req_id = models.AutoField(primary_key=True, null=False)  
     emp_name = models.CharField(max_length=100)
     team = models.CharField(max_length=100)
     req_product = models.CharField(max_length=100)
@@ -44,9 +51,9 @@ class purchase_request(models.Model):
     project_manager = models.CharField(max_length=100,blank=True)
     purchase_manager = models.CharField(max_length=100,blank=True)
     status = models.CharField(max_length=200)
-    request_date = models.DateTimeField(blank=True)
-    approved_date = models.DateTimeField(blank=True)
-    purchase_date = models.DateTimeField(blank=True)
+    request_date = models.DateTimeField(blank=True, null=True)
+    approved_date = models.DateTimeField(blank=True, null=True)
+    purchase_date = models.DateTimeField(blank=True, null=True)
     delivery_date = models.DateTimeField(blank=True, null=True)
     image = models.TextField(blank=True)
     invoice = models.CharField(max_length=100,blank=True, null=True)

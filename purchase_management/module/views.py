@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect
-from module.models import purchase,project,purchase_request,user_info
+from module.models import purchase,project,purchase_request,user_info,user_type
 from module.forms import ProjectForm,PurchaseForm,RequestForm
 from datetime import date
 from django.http import HttpResponse
@@ -15,9 +15,17 @@ def login(request):
         name = request.POST.get('uname')
         password = request.POST.get('pwd')
         if user_info.objects.filter(uname=name,password=password).exists():
+            check_utype = user_info.objects.filter(uname=name,password=password).values('user_type')
+            user_type = list(check_utype)[0]['user_type']
+            request.session['utype']=user_type
             request.session['uname'] = name
             request.session['is_login'] = True
-            return redirect("/index")
+            if user_type == '1':
+                return redirect("/index")
+            elif user_type == '2':
+                return redirect("/pr_index")
+            else:
+                return redirect("/pu_index")
         else:
             messages.error(request,'Invalid Credentials')
             return redirect("/login")
@@ -28,6 +36,31 @@ def logout(request):
     del request.session['uname']
     request.session['is_login'] = False
     return redirect("/login")
+
+def user_list(request):
+    users = user_info.objects.values()
+    return render(request,'user_list.html',{'user_list':users})
+
+def edit_users(request,id):
+    if request.method == "POST":
+        name = request.POST['name']
+        email = request.POST['email']
+        team = request.POST['team']
+        type = request.POST['utype']
+        uid = request.POST['uid']
+        update = user_info.objects.filter(uid=uid).update(name=name,email=email,team=team,user_type=type)
+        messages.success(request,'User Updated Successfully')
+        return redirect("/user_list")
+    else:
+        user_details = user_info.objects.get(uid=id)
+        utype = user_type.objects.all()
+        return render(request,'edit_users.html',{'user':user_details,'utype':utype})
+
+def delete_users(request):
+    id = request.POST['uid']
+    user = user_info.objects.get(uid=id)  
+    user.delete()  
+    return redirect("/user_list")
     
 
 def main(request):
@@ -46,6 +79,9 @@ def main(request):
 def index(request): 
     if not request.session['is_login']:
         messages.error(request,'Please login to perform this action') 
+        return redirect("/login")
+    if request.session['utype'] != '1':
+        messages.error(request,'You don\'t have access for this page') 
         return redirect("/login")
     purchase_req = purchase_request.objects.values()
     project_mgr = project.objects.values() 
@@ -83,15 +119,20 @@ def project_index(request):
     if not request.session['is_login']:
         messages.error(request,'Please login to perform this action') 
         return redirect("/login")
-    purchase_req = purchase_request.objects.values() 
-    project_mgr = project.objects.values() 
-    purchase_mgr = purchase.objects.values()    
-    return render(request,'project_index.html',{'pur_req':purchase_req,'pj_mgr':project_mgr,'pu_mgr':purchase_mgr})
+    if request.session['utype'] != '2':
+        messages.error(request,'You don\'t have access for this page') 
+        return redirect("/login") 
+    user_details = user_info.objects.filter(uname=request.session['uname']).values_list('team',flat=True)
+    purchase_req = purchase_request.objects.filter(team__in=user_details).values()
+    return render(request,'project_index.html',{'pur_req':purchase_req})
 
 
 def purchase_index(request):  
     if not request.session['is_login']:
         messages.error(request,'Please login to perform this action') 
+        return redirect("/login")
+    if request.session['utype'] != '3':
+        messages.error(request,'You don\'t have access for this page') 
         return redirect("/login")
     purchase_req = purchase_request.objects.values() 
     project_mgr = project.objects.values() 
@@ -106,39 +147,46 @@ def change_status(request):
     if 'project' in utype:
         if '1' in status:
             status = 'Approved by project manager'
-            purchase_manager = purchase.objects.values('name').filter(id=1) 
+            purchase_manager = purchase.objects.values('name').filter(purchase_manager_id=1) 
             approve_date = date.today() 
-            update = purchase_request.objects.filter(id=req_id).update(status=status,approved_date=approve_date,purchase_manager=list(purchase_manager)[0]['name'])
+            update = purchase_request.objects.filter(req_id=req_id).update(status=status,approved_date=approve_date,purchase_manager=list(purchase_manager)[0]['name'])
         elif '2' in status:
             status = 'Rejected by project manager'
-            purchase_manager = purchase.objects.values('name').filter(id=0)
-            update = purchase_request.objects.filter(id=req_id).update(status=status)
+            purchase_manager = purchase.objects.values('name').filter(purchase_manager_id=0)
+            update = purchase_request.objects.filter(req_id=req_id).update(status=status)
     elif 'purchase' in utype:
         if '1' in status:
             status = 'Order placed'
-            purchase_manager = purchase.objects.values('name').filter(id=1)
+            purchase_manager = purchase.objects.values('name').filter(purchase_manager_id=1)
             purchase_date = date.today() 
-            update = purchase_request.objects.filter(id=req_id).update(status=status,purchase_date=purchase_date,purchase_manager=list(purchase_manager)[0]['name'])  
+            update = purchase_request.objects.filter(req_id=req_id).update(status=status,approved_date=purchase_date,purchase_date=purchase_date,purchase_manager=list(purchase_manager)[0]['name'])  
         elif '2' in status:
             status = 'Rejected by purchase manager'
-            update = purchase_request.objects.filter(id=req_id).update(status=status)  
+            update = purchase_request.objects.filter(req_id=req_id).update(status=status)  
         elif '3' in status:
             status = 'Closed'
             del_date = date.today() 
-            update = purchase_request.objects.filter(id=req_id).update(status=status,delivery_date=del_date)
+            update = purchase_request.objects.filter(req_id=req_id).update(status=status)
      
     return HttpResponse('success') 
 
 
+def update_delivery_date(request):
+    req_id = request.GET.get('id')
+    del_date = request.GET.get('del_date')
+    update = purchase_request.objects.filter(req_id=req_id).update(delivery_date=del_date)
+    return HttpResponse('Delivery date updated')
+
 def upload_invoice(request):
     if request.method == "POST":  
         inv = request.FILES['invoice']
-        print(inv)
         req_id = request.POST['req_id']
+        inv_name = inv.name.replace(inv.name.split('.')[0],req_id)
         fss = FileSystemStorage()
-        file = fss.save(inv.name, inv)
+        file = fss.save(inv.name.replace(inv.name.split('.')[0],req_id), inv)
         file_url = fss.url(file)
-        update = purchase_request.objects.filter(id=req_id).update(invoice=inv)
+        update = purchase_request.objects.filter(req_id=req_id).update(invoice=inv_name)
+        messages.success(request,"Invoice Uploaded")
         return redirect('/pu_index')
     else:
         print('hi')
@@ -157,10 +205,11 @@ def registration(request):
         elif utype=='3':
             pu_manager_insert = purchase.objects.create(name=name)
         user_insert = user_info.objects.create(name=name,email=email,team=team,user_type=utype,uname=uname,password=password,created_on=date.today())
-        messages.success(request,'Successfully Registered')
-        return render(request,"login.html") 
+        messages.success(request,'User Created Successfully')
+        return redirect("/user_list") 
     else:
-        return render(request,'registration.html') 
+        utype = user_type.objects.all()
+        return render(request,'registration.html',{'utype':utype}) 
     
     
 
